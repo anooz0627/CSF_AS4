@@ -1,9 +1,25 @@
+Team members: Hyunwoo Zong, Hyun Been Bae
+
 CONTRIBUTIONS
 
-TODO: write a brief summary of how each team member contributed to
-the project.
+Task 1
+• Basic code structure and implementation - Hyunwoo Zong
+• Code Review and modifications - Hyun Been Bae
+
+Task 2
+• Basic code structure and implementation - Hyunwoo Zong
+• Code Review and modifications - Hyun Been Bae
+
+Task 3
+• Basic code structure and implementation - Hyunwoo Zong
+• Code Review and modifications - Hyun Been Bae
+
+Task 4
+experiment & data collection, data analysis - Hyun Been Bae
+brief analysis, conclusion, minor code updates - Hyunwoo Zong
 
 REPORT
+
 Threshold, Real Time (Elapsed), User Time, Sys Time
 "2,097,152", 0.396s, 0.372s, 0.018s
 "1,048,576", 0.238s, 0.381s, 0.039s
