@@ -14,6 +14,19 @@ unsigned long partition( int64_t *arr, unsigned long start, unsigned long end );
 int quicksort( int64_t *arr, unsigned long start, unsigned long end, unsigned long par_threshold );
 
 // TODO: declare additional helper functions if needed
+typedef struct {
+  pid_t pid;
+  int created;
+  int waited;
+  int wait_ok;
+  int exit_code;
+} Child;
+
+
+Child quicksort_subproc( int64_t *arr, unsigned long start, unsigned long end, unsigned long par_threshold );
+void quicksort_wait( Child *child );
+int quicksort_check_success( const Child *child );
+
 
 int main( int argc, char **argv ) {
   unsigned long par_threshold;
@@ -51,7 +64,7 @@ int main( int argc, char **argv ) {
   // mmap the file data
   int64_t *arr;
   // TODO: mmap the file data
-  arr = mmap( NULL, file_size, PROT_READ | PROT__WRITE, MAP_SHARED, fd, 0 );
+  arr = mmap( NULL, file_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0 );
   close( fd );
 
   // if mapping failed
@@ -207,10 +220,119 @@ int quicksort( int64_t *arr, unsigned long start, unsigned long end, unsigned lo
   // Recursively sort the left and right partitions
   int left_success, right_success;
   // TODO: modify this code so that the recursive calls execute in child processes
-  left_success = quicksort( arr, start, mid, par_threshold );
-  right_success = quicksort( arr, mid + 1, end, par_threshold );
+  // perform child processes for left and right section
+  Child left, right;
+  left = quicksort_subproc( arr, start, mid, par_threshold );
+  right = quicksort_subproc( arr, mid + 1, end, par_threshold );
+
+  // wait for both left and right child processes
+  quicksort_wait( &left );
+  quicksort_wait( &right );
+
+  // check the final success status for left and right child processes
+  left_success = quicksort_check_success( &left );
+  right_success = quicksort_check_success( &right );
 
   return left_success && right_success;
 }
 
 // TODO: define additional helper functions if needed
+
+// Helper function to create a child process to recursively sort the subarrays.
+//
+// Parameters:
+//   arr - pointer to first element of array
+//   start - inclusive lower bound index of subarray
+//   end - exclusive upper bound index of subarray
+//   par_threshold - if the number of elements in the region is less
+//                   than or equal to this threshold, sort sequentially,
+//                   otherwise sort in parallel using child processes
+//
+// Return:
+//   a Child struct representing the child process, which indicates the
+//   child was successfully created and stores the child's process ID
+Child quicksort_subproc( int64_t *arr, unsigned long start, unsigned long end, unsigned long par_threshold ) {
+  Child child;
+  child.pid = -1;
+  child.created = 0;
+  child.waited = 0;
+  child.wait_ok = 0;
+  child.exit_code = 1;
+
+  pid_t child_pid = fork();
+
+  if ( child_pid == 0 ) {
+    // execute in the child
+    int success = quicksort( arr, start, end, par_threshold );
+
+    if ( success ) {   // if it was successful
+      exit(0);
+    } else {   // if not
+      exit(1);
+    }
+  } else if ( child_pid < 0 ) {   // if fork failed
+    return child;
+  } else {   // in parent
+    child.pid = child_pid;
+    child.created = 1;
+
+    return child;
+  }
+}
+
+// Helper function to wait for a child process to complete and record its result.
+//
+// Parameters:
+//   child - pointer to Child struct for the child process
+void quicksort_wait( Child *child ) {
+  if ( !child->created || child->waited ) {   // if child is not created or already waited
+    return;
+  }
+
+  int rc, wstatus;
+  rc = waitpid( child->pid, &wstatus, 0 );
+  child->waited = 1;
+
+  if ( rc < 0 ) {   // if waitpid failed
+    child->wait_ok = 0;
+    child->exit_code = 1;
+    return;
+  }
+
+  if ( !WIFEXITED( wstatus ) ) {   // if child did not exit normally
+    child->wait_ok = 0;
+    child->exit_code = 1;
+    return;
+  }
+
+  child->wait_ok = 1;
+  child->exit_code = WEXITSTATUS( wstatus );  // put the exit code to child->exit_code
+}
+
+// Check whether a child process completed successfully.
+//
+// Parameters:
+//   child - pointer to Child struct for a child process
+//
+// Return:
+//   1 if the child was created successfully, waited successfully, and exited with code 0,
+//   0 otherwise
+int quicksort_check_success( const Child *child ) {
+  if ( !child->created ) {
+    return 0;
+  }
+
+  if ( !child->waited ) {
+    return 0;
+  }
+
+  if ( !child->wait_ok ) {
+    return 0;
+  }
+
+  if ( child->exit_code != 0) {
+    return 0;
+  }
+
+  return 1;
+}
