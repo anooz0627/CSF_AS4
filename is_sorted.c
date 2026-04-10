@@ -1,3 +1,10 @@
+/* C Implementation that checks if the data was properly sorted
+ * 
+ * CSF Assignment 4
+ * Hyunwoo Zong, Hyun Been Bae
+ * hzong3@jh.edu, hbae17@jh.edu
+ */
+
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>

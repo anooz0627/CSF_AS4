@@ -1,3 +1,10 @@
+/* C Implementation that performs the purely sequential C++ sorting algorithm
+ * 
+ * CSF Assignment 4
+ * Hyunwoo Zong, Hyun Been Bae
+ * hzong3@jh.edu, hbae17@jh.edu
+ */
+
 #include <iostream>
 #include <fstream>
 #include <filesystem>

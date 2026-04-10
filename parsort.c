@@ -1,3 +1,10 @@
+/* C Implementation that performs the quicksort implemented
+ * 
+ * CSF Assignment 4
+ * Hyunwoo Zong, Hyun Been Bae
+ * hzong3@jh.edu, hbae17@jh.edu
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -14,6 +21,7 @@ unsigned long partition( int64_t *arr, unsigned long start, unsigned long end );
 int quicksort( int64_t *arr, unsigned long start, unsigned long end, unsigned long par_threshold );
 
 // TODO: declare additional helper functions if needed
+// Struct 'Child' for recording the status and results of child processes
 typedef struct {
   pid_t pid;
   int created;
@@ -21,7 +29,6 @@ typedef struct {
   int wait_ok;
   int exit_code;
 } Child;
-
 
 Child quicksort_subproc( int64_t *arr, unsigned long start, unsigned long end, unsigned long par_threshold );
 void quicksort_wait( Child *child );
